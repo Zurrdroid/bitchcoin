@@ -14,10 +14,11 @@
 			// Declaration
 			let scene, camera, renderer, container;
 		
-			let spread = new THREE.Vector3(10, 10, 15);
+			let spread = new THREE.Vector3(20, 20, 15);
 			let yzSkew = 2;
+			let xzSkew = 4;
 			let center = [0, 0, 0];
-			let fallSpeed = 0.002;
+			let fallSpeed = 0.005;
 			let turnSpeed = 0.002;
 			let petalCount = 200;
 			
@@ -45,7 +46,7 @@
 				
 				// Setting up scene, camera, and renderer
 				scene = new THREE.Scene();
-				camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+				camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 100);
 				camera.position.z = 15;
 				renderer = new THREE.WebGLRenderer();
 				renderer.setPixelRatio(window.devicePixelRatio);
@@ -82,9 +83,9 @@
 					const mesh = new THREE.Mesh(geometry, material);
 					const zRand = Math.random();
 
-					mesh.position.x = 2 * spread.x * (Math.random() - 0.5) + center[0];
 					mesh.position.z = spread.z * ((zRand*zRand*zRand) - 0.5) + center[2]; // Random^3 so that more petals will spawn further away
 					mesh.position.y = spread.y * ((mesh.position.z - camera.position.z)/spread.z) * yzSkew * (Math.random() - 0.5) + center[1];
+					mesh.position.x = spread.x * ((mesh.position.z - camera.position.z)/spread.z) * xzSkew * (Math.random() - 0.5) + center[0];
 
 					//mesh.scale.x = mesh.scale.y = mesh.scale.z = Math.random() + 0.5;
 					mesh.rotation.x = Math.random() * Math.PI * 2;
@@ -150,7 +151,6 @@
 					
 					// Handle vertical petal movement
 					// TODO: Scrolling too fast can cause gaps to appear, need to solve this
-					
 					boundTop = (spread.y/2) * (-(petals[i].position.z - camera.position.z)/spread.z) * yzSkew;
 					boundBottom = -boundTop;
 					
