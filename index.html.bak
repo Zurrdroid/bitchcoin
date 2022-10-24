@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Petalfall</title>
+		<style>
+			body { margin: 0; }
+		</style>
+	</head>
+	<body>
+		<script src="js/three.js"></script>
+		<script>
+		
+			// Declaration
+			let scene, camera, renderer, container;
+		
+			let spread = new THREE.Vector3(10, 10, 15);
+			let yzSkew = 2;
+			let center = [0, 0, 0];
+			let fallSpeed = 0.002;
+			let turnSpeed = 0.002;
+			let petalCount = 200;
+			
+			const petals = [];
+			
+			let windowHalfX = window.innerWidth / 2;
+			let windowHalfY = window.innerHeight / 2;
+			
+			// Cache variables
+			let lastScrollY = 0;
+			let currentScrollY = 0;
+			let mouseX = 0;
+			let mouseXLast = 0;
+			let mouseY = 0;
+			let mouseYLast = 0;
+			
+			// Flags
+			mouseAlreadyMoved = false;
+			
+			// Initialize scene and start animation
+			init();
+			animate();
+			
+			function init() {
+				
+				// Setting up scene, camera, and renderer
+				scene = new THREE.Scene();
+				camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+				camera.position.z = 15;
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio(window.devicePixelRatio);
+				renderer.setSize(window.innerWidth, window.innerHeight); // Might need to switch this up based on the div size or whatever else is required.
+				
+				// Adding renderer to DOM
+				document.body.appendChild(renderer.domElement);
+				
+				// Setting up defaults
+				lastScrollY = currentScrollY = window.scrollY;
+				
+				const geometry = new THREE.PlaneBufferGeometry(1, 1);
+				geometry.attributes.position.setZ(2, 0.5);
+				geometry.attributes.position.needsUpdate = true;
+				
+				const textureLoader = new THREE.TextureLoader();
+
+				// Create materials for each petal sprite
+				const sprite1 = textureLoader.load('img/petal1.png');
+				const material1 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite1 });
+				const sprite2 = textureLoader.load('img/petal2.png');
+				const material2 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite2 });
+				const sprite3 = textureLoader.load('img/petal3.png');
+				const material3 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite3 });
+				const sprite4 = textureLoader.load('img/petal4.png');
+				const material4 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite4 });
+				
+				mats = [material1, material2, material3, material4];
+				
+				// Generate random petals
+				for ( let i = 0; i < petalCount; i ++ ) {
+
+					const material = mats[Math.floor(Math.random() * mats.length)];
+					const mesh = new THREE.Mesh(geometry, material);
+					const zRand = Math.random();
+
+					mesh.position.x = 2 * spread.x * (Math.random() - 0.5) + center[0];
+					mesh.position.z = spread.z * ((zRand*zRand*zRand) - 0.5) + center[2]; // One minus square so that more petals will spawn further away
+					mesh.position.y = spread.y * ((mesh.position.z - camera.position.z)/spread.z) * yzSkew * (Math.random() - 0.5) + center[1];
+
+					//mesh.scale.x = mesh.scale.y = mesh.scale.z = Math.random() + 0.5;
+					mesh.rotation.x = Math.random() * Math.PI * 2;
+					mesh.rotation.y = Math.random() * Math.PI * 2;
+					mesh.rotation.z = Math.random() * Math.PI * 2;
+
+					scene.add(mesh);
+
+					petals.push(mesh);
+
+				}
+
+				scene.fog = new THREE.Fog(0, spread.z/1.2, spread.z*1.5);
+				
+				// Event Listeners
+				document.addEventListener( 'mousemove', onDocumentMouseMove );
+				document.addEventListener( 'scroll', onScroll );
+			}
+			
+			function onDocumentMouseMove( event ) {
+
+				mouseX = (event.clientX - windowHalfX)/100;
+				mouseY = (event.clientY - windowHalfY)/100;
+				
+				if (!mouseAlreadyMoved) {
+					// TODO: Do something to record Mouse Delta here...
+					mouseXLast = mouseX;
+					mouseYLast = mouseY;
+					mouseAlreadyMoved = true;
+				}
+
+			}
+			
+			function onScroll(event) {
+				currentScrollY = window.scrollY;
+			}
+
+			function animate() {
+				requestAnimationFrame(animate);
+				
+				// TODO: Handle scrolling...
+				let scrollMultiplier = 0;
+				if (lastScrollY != currentScrollY) {
+					scrollMultiplier = -(currentScrollY - lastScrollY)*fallspeed*20;
+					lastScrollY = currentScrollY;
+				}
+				
+				const mousePoint = new THREE.Vector3(mouseX, -mouseY, 0);
+				let petalDist = 0;
+				let boundTop = spread.y/2;
+				let boundBottom = -spread.y/2;
+				var petalDir;
+				
+				for (let i = 0; i < petals.length; i++) {
+					
+					petals[i];
+				
+					petals[i].rotation.x += turnSpeed;
+					petals[i].rotation.y += turnSpeed;
+					petals[i].rotation.z += turnSpeed;
+					
+					//petal.position.z = -petal.position.y < -spread/2 ? -spread/2 : -petal.position.z + fallspeed*5;
+					
+					// Handle vertical petal movement
+					// TODO: Scrolling too fast can cause gaps to appear, need to solve this
+					
+					boundTop = (spread.y/2) * (-(petals[i].position.z - camera.position.z)/spread.z) * yzSkew;
+					boundBottom = -boundTop;
+					
+					while (petals[i].position.y > boundTop) {
+						petals[i].position.y -= boundTop - boundBottom;
+					}
+					while (petals[i].position.y < boundBottom) {
+						petals[i].position.y += boundTop - boundBottom;
+					}
+					petals[i].position.y -= (fallSpeed + scrollMultiplier);
+					
+					// TODO: Handle cursor-based petal movement
+					petalDist = petals[i].position.distanceToSquared(mousePoint);
+					if (petalDist < 2500000000) {
+						petalDir = petals[i].position.clone();
+						petalDir.sub(mousePoint);
+						petalDir.normalize;
+						petals[i].position = petals[i].position.clone().add(petalDir.multiplyScalar(100));
+					}
+				}
+				
+				petals[0].position.copy(mousePoint.multiplyScalar(2.5));
+				
+				renderer.render(scene, camera);
+			}
+		</script>
+	</body>
+</html>
