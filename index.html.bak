@@ -60,19 +60,42 @@
 				
 				const geometry = new THREE.PlaneBufferGeometry(1, 1);
 				geometry.attributes.position.setZ(2, 0.5);
+				geometry.computeVertexNormals();
 				geometry.attributes.position.needsUpdate = true;
 				
 				const textureLoader = new THREE.TextureLoader();
 
 				// Create materials for each petal sprite
-				const sprite1 = textureLoader.load('img/petal1.png');
+				const sprite1 = textureLoader.load('img/petalA.png');
 				const material1 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite1 });
-				const sprite2 = textureLoader.load('img/petal2.png');
+				const sprite2 = textureLoader.load('img/petalB.png');
 				const material2 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite2 });
-				const sprite3 = textureLoader.load('img/petal3.png');
+				const sprite3 = textureLoader.load('img/petalC.png');
 				const material3 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite3 });
-				const sprite4 = textureLoader.load('img/petal4.png');
+				const sprite4 = textureLoader.load('img/petalD.png');
 				const material4 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite4 });
+				const sprite5 = textureLoader.load('img/petalE.png');
+				const material5 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite5 });
+				const sprite6 = textureLoader.load('img/petalF.png');
+				const material6 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite6 });
+				const sprite7 = textureLoader.load('img/petalG.png');
+				const material7 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite7 });
+				const sprite8 = textureLoader.load('img/petalH.png');
+				const material8 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite8 });
+				const sprite9 = textureLoader.load('img/petalI.png');
+				const material9 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite9 });
+				const sprite10 = textureLoader.load('img/petalJ.png');
+				const material10 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite10 });
+				const sprite11 = textureLoader.load('img/petalK.png');
+				const material11 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite11 });
+				const sprite12 = textureLoader.load('img/petalL.png');
+				const material12 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite12 });
+				const sprite13 = textureLoader.load('img/petalM.png');
+				const material13 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite13 });
+				const sprite14 = textureLoader.load('img/petalN.png');
+				const material14 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite14 });
+				const sprite15 = textureLoader.load('img/petalO.png');
+				const material15 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite15 });
 				
 				mats = [material1, material2, material3, material4];
 				
@@ -137,6 +160,8 @@
 				let petalDist = 0;
 				let boundTop = spread.y/2;
 				let boundBottom = -spread.y/2;
+				let boundLeft = -spread.x/2;
+				let boundRight = -spread.x/2;
 				var petalDir;
 				
 				for (let i = 0; i < petals.length; i++) {
@@ -151,7 +176,6 @@
 					
 					// Handle vertical petal movement
 					// TODO: Scrolling too fast can cause gaps to appear, need to solve this
-					
 					boundTop = (spread.y/2) * (-(petals[i].position.z - camera.position.z)/spread.z) * yzSkew;
 					boundBottom = -boundTop;
 					
@@ -173,7 +197,7 @@
 					}
 				}
 				
-				petals[0].position.copy(mousePoint.multiplyScalar(2.5));
+				//petals[0].position.copy(mousePoint.multiplyScalar(2.5)); // petal following mouse
 				
 				renderer.render(scene, camera);
 			}
