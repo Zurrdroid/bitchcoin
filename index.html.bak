@@ -18,9 +18,10 @@
 			let yzSkew = 2;
 			let xzSkew = 4;
 			let center = [0, 0, 0];
-			let fallSpeed = 0.005;
+			let fallSpeed = 0.01;
 			let turnSpeed = 0.002;
 			let petalCount = 200;
+			let damp = 0.01;
 			
 			const petals = [];
 			
@@ -34,13 +35,15 @@
 			let mouseXLast = 0;
 			let mouseY = 0;
 			let mouseYLast = 0;
+			let timeOfLastFrame = 0;
+			let windCurrent = new THREE.Vector3(0,0,0);
 			
 			// Flags
 			mouseAlreadyMoved = false;
 			
 			// Initialize scene and start animation
 			init();
-			animate();
+			animate(0);
 			
 			function init() {
 				
@@ -97,7 +100,7 @@
 				const sprite15 = textureLoader.load('img/petalO.png');
 				const material15 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite15 });
 				
-				mats = [material1, material2, material3, material4];
+				mats = [material1, material2, material3, material4, material5, material6, material7, material7, material9, material10, material11, material12, material3, material14, material15];
 				
 				// Generate random petals
 				for ( let i = 0; i < petalCount; i ++ ) {
@@ -146,9 +149,11 @@
 				currentScrollY = window.scrollY;
 			}
 
-			function animate() {
+			function animate(timeSinceStart) {
 				requestAnimationFrame(animate);
 				
+				let deltaTime = timeSinceStart - timeOfLastFrame;
+				timeOfLastFrame = timeSinceStart;
 				// TODO: Handle scrolling...
 				let scrollMultiplier = 0;
 				if (lastScrollY != currentScrollY) {
@@ -156,21 +161,32 @@
 					lastScrollY = currentScrollY;
 				}
 				
+				// Getting mouse delta...
 				const mousePoint = new THREE.Vector3(mouseX, -mouseY, 0);
+				let mouseDelta = new THREE.Vector3((mouseX - mouseXLast), (mouseY - mouseYLast), 0);
+
+				windCurrent.x += mouseDelta.x/20;
+				windCurrent.x = windCurrent.x/(1 + damp/10);
+				windCurrent.y += mouseDelta.y/20;
+				windCurrent.y = windCurrent.y/(1 + damp/10);
+				
+				let windSpeed = windCurrent.lengthSq();
+				let mouseSpeed = mouseDelta.lengthSq();
+				
 				let petalDist = 0;
 				let boundTop = spread.y/2;
-				let boundBottom = -spread.y/2;
-				let boundLeft = -spread.x/2;
-				let boundRight = -spread.x/2;
+				let boundBottom = -boundTop;
+				let boundRight = spread.x/2;
+				let boundLeft = -boundRight;
 				var petalDir;
 				
 				for (let i = 0; i < petals.length; i++) {
 					
 					petals[i];
 				
-					petals[i].rotation.x += turnSpeed;
-					petals[i].rotation.y += turnSpeed;
-					petals[i].rotation.z += turnSpeed;
+					petals[i].rotation.x += turnSpeed*(1 + (mouseSpeed + windSpeed)*20);
+					petals[i].rotation.y += turnSpeed*(1 + (mouseSpeed + windSpeed)*20);
+					petals[i].rotation.z += turnSpeed*(1 + (mouseSpeed + windSpeed)*20);
 					
 					//petal.position.z = -petal.position.y < -spread/2 ? -spread/2 : -petal.position.z + fallspeed*5;
 					
@@ -188,6 +204,17 @@
 					petals[i].position.y -= (fallSpeed + scrollMultiplier);
 					
 					// TODO: Handle cursor-based petal movement
+					boundRight = (spread.x/2) * (-(petals[i].position.z - camera.position.z)/spread.z) * xzSkew;
+					boundLeft = -boundRight;
+					while (petals[i].position.x > boundRight) {
+						petals[i].position.x -= boundRight - boundLeft;
+					}
+					while (petals[i].position.x < boundLeft) {
+						petals[i].position.x += boundRight - boundLeft;
+					}
+					petals[i].position.x += (fallSpeed + scrollMultiplier)*windCurrent.x*20;
+					petals[i].position.y -= (fallSpeed + scrollMultiplier)*windCurrent.y*20;
+					/*
 					petalDist = petals[i].position.distanceToSquared(mousePoint);
 					if (petalDist < 2500000000) {
 						petalDir = petals[i].position.clone();
@@ -195,9 +222,12 @@
 						petalDir.normalize;
 						petals[i].position = petals[i].position.clone().add(petalDir.multiplyScalar(100));
 					}
+					*/
 				}
 				
 				//petals[0].position.copy(mousePoint.multiplyScalar(2.5)); // petal following mouse
+				
+				mouseXLast = mouseX; mouseYLast = mouseY;
 				
 				renderer.render(scene, camera);
 			}
