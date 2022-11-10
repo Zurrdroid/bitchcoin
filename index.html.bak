@@ -24,6 +24,7 @@
 			let damp = 0.01;
 			
 			const petals = [];
+			const petalVelocities = [];
 			
 			let windowHalfX = window.innerWidth / 2;
 			let windowHalfY = window.innerHeight / 2;
@@ -61,7 +62,7 @@
 				// Setting up defaults
 				lastScrollY = currentScrollY = window.scrollY;
 				
-				const geometry = new THREE.PlaneBufferGeometry(1, 1);
+				const geometry = new THREE.PlaneGeometry(1, 1);
 				geometry.attributes.position.setZ(2, 0.5);
 				geometry.computeVertexNormals();
 				geometry.attributes.position.needsUpdate = true;
@@ -100,7 +101,7 @@
 				const sprite15 = textureLoader.load('img/petalO.png');
 				const material15 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite15 });
 				
-				mats = [material1, material2, material3, material4, material5, material6, material7, material7, material9, material10, material11, material12, material3, material14, material15];
+				let mats = [material1, material2, material3, material4, material5, material6, material7, material7, material9, material10, material11, material12, material3, material14, material15];
 				
 				// Generate random petals
 				for ( let i = 0; i < petalCount; i ++ ) {
@@ -121,6 +122,7 @@
 					scene.add(mesh);
 
 					petals.push(mesh);
+					petalVelocities.push(new THREE.Vector3(0,0,0));
 
 				}
 
@@ -133,8 +135,8 @@
 			
 			function onDocumentMouseMove( event ) {
 
-				mouseX = (event.clientX - windowHalfX)/100;
-				mouseY = (event.clientY - windowHalfY)/100;
+				mouseX = (event.clientX - windowHalfX)/windowHalfX;
+				mouseY = (event.clientY - windowHalfY)/windowHalfY;
 				
 				if (!mouseAlreadyMoved) {
 					// TODO: Do something to record Mouse Delta here...
@@ -212,8 +214,8 @@
 					while (petals[i].position.x < boundLeft) {
 						petals[i].position.x += boundRight - boundLeft;
 					}
-					petals[i].position.x += (fallSpeed + scrollMultiplier)*windCurrent.x*20;
-					petals[i].position.y -= (fallSpeed + scrollMultiplier)*windCurrent.y*20;
+					petals[i].position.x += (fallSpeed + scrollMultiplier)*windCurrent.x*10;
+					petals[i].position.y -= (fallSpeed + scrollMultiplier)*windCurrent.y*10;
 					/*
 					petalDist = petals[i].position.distanceToSquared(mousePoint);
 					if (petalDist < 2500000000) {
@@ -225,7 +227,11 @@
 					*/
 				}
 				
-				//petals[0].position.copy(mousePoint.multiplyScalar(2.5)); // petal following mouse
+				const materialBlank = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide});
+				mousePoint.z = 0.99;
+				mousePoint.unproject(camera);
+				petals[0].position.copy(mousePoint); // petal following mouse
+				petals[0].material = materialBlank;
 				
 				mouseXLast = mouseX; mouseYLast = mouseY;
 				
