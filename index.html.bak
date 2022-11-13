@@ -22,11 +22,12 @@
 			let turnSpeed = 0.002;
 			let petalCount = 200;
 			let damp = 0.01;
-			let mouseBrushSize = 10;
-			let mouseEffectStrength = 0.001;
+			let mouseBrushSize = 5;
+			let mouseEffectStrength = 0.1;
 			
 			const petals = [];
 			const petalVelocities = [];
+			const petalSpins = [];
 			
 			let windowHalfX = window.innerWidth / 2;
 			let windowHalfY = window.innerHeight / 2;
@@ -102,6 +103,7 @@
 
 					petals.push(mesh);
 					petalVelocities.push(new THREE.Vector3(0,0,0));
+					petalSpins.push(0);
 
 				}
 
@@ -164,7 +166,7 @@
 				let mouseBrushSquare = mouseBrushSize*mouseBrushSize;
 				
 				// Project the mouse point into world space
-				mousePoint.z = 0.99;
+				mousePoint.z = 0.985;
 				mousePoint.unproject(camera);
 				
 				for (let i = 0; i < petals.length; i++) {
@@ -205,11 +207,16 @@
 					petalDist = petals[i].position.distanceToSquared(mousePoint);
 					if (petalDist < mouseBrushSquare) {
 						const strength = (1 - petalDist/mouseBrushSquare)*mouseEffectStrength;
-						petalVelocities[i] = new THREE.Vector3(petalVelocities[i].x + strength*mouseDelta.x, petalVelocities[i].y + strength*mouseDelta.y, 0);
+						petalVelocities[i] = new THREE.Vector3(petalVelocities[i].x + strength*mouseDelta.x, petalVelocities[i].y - strength*mouseDelta.y, 0);
+						petalSpins[i] += mouseSpeed;
 					}
-					petals[i].rotation.z += petalVelocities[i].x;
-					petalVelocities[i] = new THREE.Vector3(petalVelocities[i].x/(1+damp*0.1),petalVelocities[i].y/(1+damp*0.1),0);
+					const spin = petalVelocities[i].lengthSq();
+					petals[i].position.x += petalVelocities[i].x;
+					petals[i].position.y += petalVelocities[i].y;
+					petals[i].rotation.x += petalSpins[i];
 					
+					petalSpins[i] = petalSpins[i]/(1+damp*0.5);
+					petalVelocities[i] = new THREE.Vector3(petalVelocities[i].x/(1+damp*0.1),petalVelocities[i].y/(1+damp*0.1),0);
 				}
 				
 				mouseXLast = mouseX; mouseYLast = mouseY; mousePointLast = mousePoint;
