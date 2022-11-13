@@ -22,6 +22,7 @@
 			let turnSpeed = 0.002;
 			let petalCount = 200;
 			let damp = 0.01;
+			let mouseBrushSize = 10;
 			
 			const petals = [];
 			const petalVelocities = [];
@@ -36,6 +37,7 @@
 			let mouseXLast = 0;
 			let mouseY = 0;
 			let mouseYLast = 0;
+			let mousePointLast = new THREE.Vector3(0,0,0);
 			let timeOfLastFrame = 0;
 			let windCurrent = new THREE.Vector3(0,0,0);
 			
@@ -164,7 +166,7 @@
 				}
 				
 				// Getting mouse delta...
-				const mousePoint = new THREE.Vector3(mouseX, -mouseY, 0);
+				let mousePoint = new THREE.Vector3(mouseX, -mouseY, 0);
 				let mouseDelta = new THREE.Vector3((mouseX - mouseXLast), (mouseY - mouseYLast), 0);
 
 				windCurrent.x += mouseDelta.x/20;
@@ -181,6 +183,12 @@
 				let boundRight = spread.x/2;
 				let boundLeft = -boundRight;
 				var petalDir;
+				
+				let mouseBrushSquare = mouseBrushSize*mouseBrushSize;
+				
+				// Project the mouse point into world space
+				mousePoint.z = 0.99;
+				mousePoint.unproject(camera);
 				
 				for (let i = 0; i < petals.length; i++) {
 					
@@ -214,26 +222,21 @@
 					while (petals[i].position.x < boundLeft) {
 						petals[i].position.x += boundRight - boundLeft;
 					}
-					petals[i].position.x += (fallSpeed + scrollMultiplier)*windCurrent.x*10;
-					petals[i].position.y -= (fallSpeed + scrollMultiplier)*windCurrent.y*10;
-					/*
+					//petals[i].position.x += (fallSpeed + scrollMultiplier)*windCurrent.x*10;
+					//petals[i].position.y -= (fallSpeed + scrollMultiplier)*windCurrent.y*10;
+					
 					petalDist = petals[i].position.distanceToSquared(mousePoint);
-					if (petalDist < 2500000000) {
-						petalDir = petals[i].position.clone();
-						petalDir.sub(mousePoint);
-						petalDir.normalize;
-						petals[i].position = petals[i].position.clone().add(petalDir.multiplyScalar(100));
+					if (petalDist < mouseBrushSquare) {
+						petalVelocities[i] = (mouseBrushSquare - petalDist)*0.001;
+						petalVelocities[i] = new THREE.Vector3(petalVelocities[i], petalVelocities[i], petalVelocities[i]);
+						petalVelocities[i] = new THREE.Vector3(petalVelocities[i], petalVelocities[i], 0);
 					}
-					*/
+					petals[i].rotation.z += petalVelocities[i].x;
+					petalVelocities[i] = new THREE.Vector3(0,0,0);
+					
 				}
 				
-				const materialBlank = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide});
-				mousePoint.z = 0.99;
-				mousePoint.unproject(camera);
-				petals[0].position.copy(mousePoint); // petal following mouse
-				petals[0].material = materialBlank;
-				
-				mouseXLast = mouseX; mouseYLast = mouseY;
+				mouseXLast = mouseX; mouseYLast = mouseY; mousePointLast = mousePoint;
 				
 				renderer.render(scene, camera);
 			}
