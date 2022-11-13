@@ -23,6 +23,7 @@
 			let petalCount = 200;
 			let damp = 0.01;
 			let mouseBrushSize = 10;
+			let mouseEffectStrength = 0.001;
 			
 			const petals = [];
 			const petalVelocities = [];
@@ -71,39 +72,15 @@
 				
 				const textureLoader = new THREE.TextureLoader();
 
-				// Create materials for each petal sprite
-				const sprite1 = textureLoader.load('img/petalA.png');
-				const material1 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite1 });
-				const sprite2 = textureLoader.load('img/petalB.png');
-				const material2 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite2 });
-				const sprite3 = textureLoader.load('img/petalC.png');
-				const material3 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite3 });
-				const sprite4 = textureLoader.load('img/petalD.png');
-				const material4 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite4 });
-				const sprite5 = textureLoader.load('img/petalE.png');
-				const material5 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite5 });
-				const sprite6 = textureLoader.load('img/petalF.png');
-				const material6 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite6 });
-				const sprite7 = textureLoader.load('img/petalG.png');
-				const material7 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite7 });
-				const sprite8 = textureLoader.load('img/petalH.png');
-				const material8 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite8 });
-				const sprite9 = textureLoader.load('img/petalI.png');
-				const material9 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite9 });
-				const sprite10 = textureLoader.load('img/petalJ.png');
-				const material10 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite10 });
-				const sprite11 = textureLoader.load('img/petalK.png');
-				const material11 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite11 });
-				const sprite12 = textureLoader.load('img/petalL.png');
-				const material12 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite12 });
-				const sprite13 = textureLoader.load('img/petalM.png');
-				const material13 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite13 });
-				const sprite14 = textureLoader.load('img/petalN.png');
-				const material14 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite14 });
-				const sprite15 = textureLoader.load('img/petalO.png');
-				const material15 = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite15 });
+				// Load materials for each petal sprite
+				let mats = [];
+				const codeA = "A".charCodeAt(0);
+				for ( let i = 0; i < 15; i++) {
+					const sprite = textureLoader.load('img/petal' + String.fromCharCode(codeA + i) + '.png');
+					const material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, map: sprite });
+					mats[i] = ( material );
+				}
 				
-				let mats = [material1, material2, material3, material4, material5, material6, material7, material7, material9, material10, material11, material12, material3, material14, material15];
 				
 				// Generate random petals
 				for ( let i = 0; i < petalCount; i ++ ) {
@@ -227,12 +204,11 @@
 					
 					petalDist = petals[i].position.distanceToSquared(mousePoint);
 					if (petalDist < mouseBrushSquare) {
-						petalVelocities[i] = (mouseBrushSquare - petalDist)*0.001;
-						petalVelocities[i] = new THREE.Vector3(petalVelocities[i], petalVelocities[i], petalVelocities[i]);
-						petalVelocities[i] = new THREE.Vector3(petalVelocities[i], petalVelocities[i], 0);
+						const strength = (1 - petalDist/mouseBrushSquare)*mouseEffectStrength;
+						petalVelocities[i] = new THREE.Vector3(petalVelocities[i].x + strength*mouseDelta.x, petalVelocities[i].y + strength*mouseDelta.y, 0);
 					}
 					petals[i].rotation.z += petalVelocities[i].x;
-					petalVelocities[i] = new THREE.Vector3(0,0,0);
+					petalVelocities[i] = new THREE.Vector3(petalVelocities[i].x/(1+damp*0.1),petalVelocities[i].y/(1+damp*0.1),0);
 					
 				}
 				
